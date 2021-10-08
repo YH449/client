@@ -14,7 +14,7 @@ export default class IssueOrderByMaterialRequest {
      * @param {*} object 
      */
     static sendCreateIssueOrderByMaterialRequest = (object) => {
-        let requestBody = IssueOrderByMaterialRequestBody.buildCreateIssueOrderByMaterial(object.materials,object.materials.actionReason,object.materials.actionComment);
+        let requestBody = IssueOrderByMaterialRequestBody.buildCreateIssueOrderByMaterial(object.materials, object.actionComment);
         let requestHeader = new IssueOrderByMaterialRequestHeader();
         let request = new Request(requestHeader, requestBody, UrlConstant.MMSCreateIssueOrderUrl);
         let requestObject = {

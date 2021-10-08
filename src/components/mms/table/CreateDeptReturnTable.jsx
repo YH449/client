@@ -1,13 +1,12 @@
-import { Button } from 'antd';
+import ReturnLotOrderRequest from '@api/return-material-manager/ReturnLotOrderRequest';
 import { i18NCode } from '@const/i18n';
 import I18NUtils from '@utils/I18NUtils';
 import NoticeUtils from '@utils/NoticeUtils';
 import CreateReturnTable from './CreateReturnTable';
-import CreateDeptReturnDialog from '../dialog/CreateDeptReturnDialog';
-import DeptReturnDialog from '../dialog/DeptReturnDialog';
-import TableManagerRequest from "@api/table-manager/TableManagerRequest";
+import CreateMLotDialog from '../dialog/CreateMLotDialog';
 import PrintReturnOrderDialog from '../dialog/PrintReturnOrderDialog';
-import TableUtils from '@components/framework/utils/TableUtils';
+import TableManagerRequest from '@api/table-manager/TableManagerRequest';
+import CreateDeptReturnDialog from '../dialog/CreateDeptReturnDialog';
 /**
  * 创建部门退料单
  */
@@ -17,137 +16,70 @@ export default class CreateDeptReturnTable extends CreateReturnTable {
 
     constructor(props){
         super(props);
-       this.state = {...this.state, documentId:'', formPrintObject:{},PrintObject:{}, document:[], formPrintVisible:false,PrintVisible:false};
-    }
-
-    createButtonGroup = () => {
-        let buttons = [];
-        buttons.push(this.CreateReturnOrderButton());
-        return buttons;
+        this.state = {...this.state, documentId:'', formPrintObject:{}, document:{}, formPrintVisible:false};
     }
 
     createForm = () => {
-        let childrens = [];    
-        childrens.push(<DeptReturnDialog key={DeptReturnDialog.displayName} ref={this.formRef} object={this.state.editorObject} visible={this.state.formVisible} 
-                                                        table={this.state.table} onOk={this.refresh} onCancel={this.handleCancel} />);
-
-        childrens.push (<CreateDeptReturnDialog key={CreateDeptReturnDialog.displayName} ref={this.formRef} object={this.state.formObject} visible={this.state.formPrintVisible} 
-                                            table={this.state.materialLotCreateActionTable} onOk={this.crefresh} onCancel={this.chandleCancel} />); 
-
-        childrens.push (<PrintReturnOrderDialog key={PrintReturnOrderDialog.displayName} ref={this.formRef} documentId={this.state.documentId}  document={this.state.document} object={this.state.PrintObject} visible={this.state.PrintVisible} 
-                                             onOk={this.printOk} onCancel={this.printCancel} />);       
- 
+        let childrens = [];
+        childrens.push(<CreateMLotDialog key={CreateMLotDialog.displayName} ref={this.formRef} object={this.state.editorObject} visible={this.state.formVisible} 
+                                                        table={this.state.table} onOk={this.refresh} onCancel={this.handleCancel} />);                               
+        childrens.push(<PrintReturnOrderDialog key={PrintReturnOrderDialog.displayName} documentId={this.state.documentId} object={this.state.formPrintObject} 
+                                            visible={this.state.formPrintVisible} onOk={this.printOk} onCancel={this.printOk}/>)
+        childrens.push(<CreateDeptReturnDialog key={CreateDeptReturnDialog.displayName} ref={this.formRef} object={this.state.createDeptReturnObject} visible={this.state.createDeptReturnVisible} 
+                table={this.state.createDeptReturnActionTable} onOk={this.createDeptReturnOk} onCancel={this.createDeptReturnCancel} />);
         return childrens;
-
     }
-    crefresh = (doc) => {
+
+    createDeptReturnOk = (doc) => {
         let self =this;
         let {data} = this.state;
+        data.map((d, index)=>{
+            d.reservedQty = d.transQty
+        })
         self.setState({
-            formObject: [],
-            formPrintVisible: false,
-            PrintVisible:true,
-            documentId:doc.name,
-            document:doc,
-            PrintObject:data,
+            createDeptReturnObject: {},
+            createDeptReturnVisible: false,
+            formPrintVisible: true,
+            formPrintObject: data,
+            documentId: doc.name,
         });      
         NoticeUtils.showSuccess();
     }
 
-    chandleCancel = () => {
+    createDeptReturnCancel = () => {
         this.setState({
-            formPrintVisible: false
-        });
-    }
-    printOk = () => {
-        let selectedRows = this.state.selectedRows;
-        this.refreshDelete(selectedRows);
-        this.setState({
-            PrintObject:[],
-            PrintVisible: false,
-            loading: false,  
+            createDeptReturnObject: {},
+            createDeptReturnVisible: false,
         });      
     }
-
-    printCancel = () => {
-        this.setState({
-            PrintVisible: false,
-        });
-    }
-   
-
-    DeptReturnOrder = () =>{
-        let self=this;
-        let {data} = this.state;
-        if (!data || data.length == 0) {
-            NoticeUtils.showNotice(I18NUtils.getClientMessage(i18NCode.AddAtLeastOneRow)); 
+    
+    CreateReturnOrder = () =>{
+        let self = this ;
+        let {data} = self.state;
+        if(data.length == 0){
+            NoticeUtils.showInfo(I18NUtils.getClientMessage(i18NCode.AddAtLeastOneRow));
             return;
         }
-
         let nullReturnQtyFlag = false;
         data.map((d, index)=>{
             if(d.transQty == null){
                 nullReturnQtyFlag = true;
             }
         })
-
         if(nullReturnQtyFlag){
             NoticeUtils.showInfo(I18NUtils.getClientMessage("退料数量不能为空"));
             return;
         }
-        let DeptDialogTableName = this.props.materialLotCreateDeptDialogTableName;
         let requestObject = {
-            name: DeptDialogTableName, 
+            name: this.props.createDeptReturnActionTableName, 
             success: function(responseBody) {
                 self.setState({
-                    formPrintVisible: true,
-                    formObject: data,
-                    materialLotCreateActionTable: responseBody.table,
-                });
+                    createDeptReturnObject: {materialLots: data},
+                    createDeptReturnVisible: true,
+                    createDeptReturnActionTable: responseBody.table
+                });  
             }
         }
         TableManagerRequest.sendGetByNameRequest(requestObject); 
-    }
-  
-    CreateReturnOrderButton = () => {
-    return <Button key="CreateReturnOrder" type="primary" className="table-button" icon="dropbox" onClick={this.DeptReturnOrder} loading={this.state.loading}>
-                    {I18NUtils.getClientMessage(i18NCode.BtnCreate)}
-                </Button>
-    }
-
-    getRowClassName = (record, index) => {
-        const {selectedRows} = this.state;
-        if (selectedRows.indexOf(record) >= 0) {
-            return 'scaned-row';
-        } else {
-            if(index % 2 ===0) {
-                return 'even-row'; 
-            } else {
-                return ''; 
-            }
-        }
-    }
-
-    refreshDelete = (records) => {
-        TableUtils.refreshDelete(this, records);
-    }
-    
-    selectRow = (record) => {
-        let rowKey = this.props.rowKey || DefaultRowKey;
-        const selectedRowKeys = [...this.state.selectedRowKeys];
-        const selectedRows = [...this.state.selectedRows];
-
-        let checkIndex = selectedRowKeys.indexOf(record[rowKey]);
-        if (checkIndex >= 0) {
-            selectedRowKeys.splice(checkIndex, 1);
-            selectedRows.splice(checkIndex, 1);
-        } else {
-            selectedRowKeys.push(record[rowKey]);
-            selectedRows.push(record);
-        }
-        this.setState({ 
-            selectedRowKeys: selectedRowKeys,
-            selectedRows: selectedRows
-        });
     }
 }

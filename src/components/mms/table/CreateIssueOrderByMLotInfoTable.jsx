@@ -1,155 +1,104 @@
-import { Button } from 'antd';
-import EntityListTable from '@components/framework/table/EntityListTable';
+import IssueOrderRequest from '@api/issue-order-manager/issue-lot-order/IssueOrderRequest';
+import TableManagerRequest from '@api/table-manager/TableManagerRequest';
 import { i18NCode } from '@const/i18n';
 import I18NUtils from '@utils/I18NUtils';
 import NoticeUtils from '@utils/NoticeUtils';
-import CreateMLotDialog from '../dialog/CreateMLotDialog';
-import PrintPickOrderMlotDialog from '../dialog/PrintPickOrderMlotDialog';
 import CreateIssueOrderDialog from '../dialog/CreateIssueOrderDialog';
-import TableManagerRequest from "@api/table-manager/TableManagerRequest";
-import TableUtils from '@components/framework/utils/TableUtils';
+import CreateMLotDialog from '../dialog/CreateMLotDialog';
+import PrintIssueOrderDialog from '../dialog/PrintIssueOrderDialog';
+import CreateIssueOrderByMaterialInfoTable from './CreateIssueOrderByMaterialInfoTable';
 
 /**
  * 创建指定批次及数量发料单
  */
-export default class CreateIssueOrderByMLotInfoTable extends EntityListTable {
+export default class CreateIssueOrderByMLotInfoTable extends CreateIssueOrderByMaterialInfoTable {
 
     static displayName = 'CreateIssueOrderByMLotInfoTable';
 
-    constructor(props){
-        super(props);
-        this.state = {...this.state, documentId:'', formPrintObject:{},PrintObject:{}, document:[], formPrintVisible:false,PrintVisible:false};
-   
+    openCreateIssueOrderDialog = (dataList) => {
+        let self = this;
+        let requestObject = {
+            name: this.props.createDeptIssueActionTableName, 
+            success: function(responseBody) {
+                self.setState({
+                    createIssueOrderObject: {materialLots: dataList},
+                    createIssueOrderVisible: true,
+                    createIssueOrderActionTable: responseBody.table
+                });  
+            }
+        }
+        TableManagerRequest.sendGetByNameRequest(requestObject); 
     }
 
-    createButtonGroup = () => {
-        let buttons = [];
-        buttons.push(this.CreateIssueGetOrderButton());
-        return buttons;
-    }
-   
+    // handleCreatePick = () =>{
+    //     let self = this ;
+    //     let {data} = self.state;
+    //     if(data.length == 0){
+    //         NoticeUtils.showInfo(I18NUtils.getClientMessage(i18NCode.SelectOneRow));
+    //         return;
+    //     }
+    //     let nullPickQtyFlag = false;
+    //     data.map((d, index)=>{
+    //         if(d.pickQty == null){
+    //             nullPickQtyFlag = true;
+    //         }
+    //     })
+
+    //     if(nullPickQtyFlag){
+    //         NoticeUtils.showInfo(I18NUtils.getClientMessage("领料数量不能为空"));
+    //         return;
+    //     }
+    //     let requestObject = {
+    //         name: this.props.createDeptIssueActionTableName, 
+    //         success: function(responseBody) {
+    //             self.setState({
+    //                 createIssueOrderObject: {materialLots: data},
+    //                 createIssueOrderVisible: true,
+    //                 createIssueOrderActionTable: responseBody.table
+    //             });  
+    //         }
+    //     }
+    //     TableManagerRequest.sendGetByNameRequest(requestObject); 
+
+    //     // let objectRequest = {
+    //     //     materialLots : data,
+    //     //     success: function(responseBody){
+    //     //         self.setState({
+    //     //             formPrintVisible: true,
+    //     //             formPrintObject:data,
+    //     //             document:responseBody.document,
+    //     //         })
+    //     //     }
+    //     // }
+    //     // IssueOrderRequest.sendCreateIssueMLotOrderRequest(objectRequest);
+    // }
+
     createForm = () => {
         let childrens = [];
-
         childrens.push(<CreateMLotDialog key={CreateMLotDialog.displayName} ref={this.formRef} object={this.state.editorObject} visible={this.state.formVisible} 
-                                                        table={this.state.table} onOk={this.refresh} onCancel={this.handleCancel} />);
-
-        childrens.push(<CreateIssueOrderDialog key={CreateIssueOrderDialog.displayName}  ref={this.formRef} object={this.state.formObject} visible={this.state.formPrintVisible}
-                                                         table={this.state.CreateIssueOrderMLotActionTable} onOk={this.crefresh} onCancel={this.chandleCancel} />);  
-  
-         childrens.push(<PrintPickOrderMlotDialog key={PrintPickOrderMlotDialog.displayName} document={this.state.document} object={this.state.PrintObject} 
-                                             visible={this.state.PrintVisible} onOk={this.printOk} onCancel={this.printCancel}/>);
-       return childrens;
+                                                        table={this.state.table} onOk={this.refresh} onCancel={this.handleCancel} />);                               
+        childrens.push(<PrintIssueOrderDialog key={PrintIssueOrderDialog.displayName} document={this.state.document} object={this.state.formPrintObject} 
+                                            visible={this.state.formPrintVisible} onOk={this.printOk} onCancel={this.printCancel}/>)
+        childrens.push(<CreateIssueOrderDialog key={CreateIssueOrderDialog.displayName} object={this.state.createIssueOrderObject}  table={this.state.createIssueOrderActionTable} 
+                visible={this.state.createIssueOrderVisible} onOk={this.createIssueOrderOk} onCancel={this.createIssueOrderCancel}/>)
+        return childrens;
     }
 
-
-    crefresh = (doc) => {
+    createIssueOrderOk = (dialogObject) => {
         let self =this;
-        let {data} = this.state;
-        self.setState({
-            formObject: [],
-            formPrintVisible: false,
-            PrintVisible:true,
-            document:doc,
-            PrintObject:data,
-        });      
-        NoticeUtils.showSuccess();
-    }
-
-    chandleCancel = () => {
-        this.setState({
-            formPrintVisible: false
-        });
-    }
-
-    printOk = () => {
-        let selectedRows = this.state.selectedRows;
-        this.refreshDelete(selectedRows);
-        this.setState({
-            PrintObject:[],
-            PrintVisible: false,
-            loading: false,  
-        });      
-    }
-
-    printCancel = () => {
-        this.setState({
-            PrintVisible: false,
-        });
-    }
-
-    handleCreatePick = () =>{
-        let self = this ;
-        let {data} = self.state;
-        if(!data||data.length == 0){
-            NoticeUtils.showInfo(I18NUtils.getClientMessage(i18NCode.SelectOneRow));
-            return;
-        }
-        let nullPickQtyFlag = false;
-        data.map((d, index)=>{
-            if(d.pickQty == null){
-                nullPickQtyFlag = true;
-            }
-        })
-
-        if(nullPickQtyFlag){
-            NoticeUtils.showInfo(I18NUtils.getClientMessage("领料数量不能为空"));
-            return;
-        }
-
-        let CreateIssueDialogTableName = this.props.materialLotCreateIssueOrderDialogTableName;
         let objectRequest = {
-            name : CreateIssueDialogTableName,  
+            materialLots: dialogObject.materialLots,
+            actionComment: dialogObject.actionComment,
             success: function(responseBody){
                 self.setState({
-                   formObject: data,
-                   formPrintVisible: true,
-                   CreateIssueOrderMLotActionTable: responseBody.table,
-                })
+                    createIssueOrderObject: {},
+                    createIssueOrderVisible: false,
+                    formPrintVisible: true,
+                    formPrintObject: dialogObject.materialLots,
+                    document: responseBody.document,
+                });     
             }
         }
-        TableManagerRequest.sendGetByNameRequest(objectRequest); 
+        IssueOrderRequest.sendCreateIssueMLotOrderRequest(objectRequest);   
     }
-   
-    refreshDelete = (records) => {
-        TableUtils.refreshDelete(this, records);
-    }
-
-    selectRow = (record) => {
-        let rowKey = this.props.rowKey || DefaultRowKey;
-        const selectedRowKeys = [...this.state.selectedRowKeys];
-        const selectedRows = [...this.state.selectedRows];
-    
-        let checkIndex = selectedRowKeys.indexOf(record[rowKey]);
-        if (checkIndex >= 0) {
-            selectedRowKeys.splice(checkIndex, 1);
-            selectedRows.splice(checkIndex, 1);
-        } else {
-            selectedRowKeys.push(record[rowKey]);
-            selectedRows.push(record);
-        }
-        this.setState({ 
-            selectedRowKeys: selectedRowKeys,
-            selectedRows: selectedRows
-        });
-        
-    } 
-
-    getRowClassName = (record, index) => {
-        const {selectedRows} = this.state;
-        if (selectedRows.indexOf(record) >= 0) {
-            return 'scaned-row';
-        } else {
-            if(index % 2 ===0) {
-                return 'even-row'; 
-            } else {
-                return ''; 
-            }
-        }
-    }
-    CreateIssueGetOrderButton = () => {
-        return (<Button key="CreateIssueGetOrder" type="primary"  icon="file-excel" onClick={this.handleCreatePick} loading={this.state.loading} >
-                        {I18NUtils.getClientMessage(i18NCode.BtnCreate)}
-                </Button>)}
-
 }

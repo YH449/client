@@ -16,15 +16,14 @@ export default class IssueOrderRequestBody{
     materialLots;
     materialLotAction;
 
-    constructor(actionType, documentId, materialLotIdList, materialLots,materialLotAction){
+    constructor(actionType, documentId, materialLotIdList, materialLots){
         this.actionType =actionType;
         this.documentId = documentId;
         this.materialLotIdList = materialLotIdList;
         this.materialLots = materialLots;
-        this.materialLotAction=materialLotAction;
     }
 
-    static setMaterialLotAction(materialLotAction){
+    setMaterialLotAction(materialLotAction){
         this.materialLotAction = materialLotAction;
     }
 
@@ -44,13 +43,14 @@ export default class IssueOrderRequestBody{
         return new IssueOrderRequestBody(actionType.PrintIssueOrder, documentId);
     }
 
-    static buildCreateIssueMLotOrder(materialLots,actionReason,actionComment){
+    static buildCreateIssueMLotOrder(materialLots, actionComment){
+        let requestBody = new IssueOrderRequestBody(actionType.CreateIssueOrderByMLot, undefined, undefined, materialLots);
+        
         let materialLotAction = new MaterialLotAction();
-        materialLotAction.setActionReason(actionReason);
         materialLotAction.setActionComment(actionComment);
-        let requestBody=new IssueOrderRequestBody(actionType.CreateIssueOrderByMLot, undefined,undefined, materialLots,materialLotAction);
-        return requestBody;
-     
+        requestBody.setMaterialLotAction(materialLotAction);
+
+        return requestBody
     }
 
     static buildIssueMaterialLotByOrder(documentId, materialLots){

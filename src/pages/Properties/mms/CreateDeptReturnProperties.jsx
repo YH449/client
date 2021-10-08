@@ -13,14 +13,9 @@ export default class CreateDeptReturnProperties extends EntityScanProperties{
         this.state= {...this.state}
     }
 
-    buildTable = () => {
-        return <CreateDeptReturnTable
-                        {...this.getDefaultTableProps()} 
-                        pagination={false} 
-                        properties = {this}
-                        ref = {(createDeptTable) => {this.createDeptTable = createDeptTable}}
-                        materialLotCreateDeptDialogTableName={this.state.parameters.parameter1}
-                        />
-    }  
-   
+    buildTable=()=>{
+        return( <CreateDeptReturnTable
+                {...this.getDefaultTableProps()}
+                createDeptReturnActionTableName = {this.state.parameters.parameter1}/>)
+    }
 }

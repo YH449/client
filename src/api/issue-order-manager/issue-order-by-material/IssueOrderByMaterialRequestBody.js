@@ -15,23 +15,26 @@ export default class IssueOrderByMaterialRequestBody {
     materialLotIds;
     materialLotAction;
 
-    constructor(actionType, materials, documentId, materialLotIds,materialLotAction){
+    constructor(actionType, materials, documentId, materialLotIds){
         this.actionType = actionType;
         this.materials = materials;
         this.documentId = documentId;
         this.materialLotIds = materialLotIds;
-        this.materialLotAction=materialLotAction;
     }
-    static setMaterialLotAction(materialLotAction){
+
+    setMaterialLotAction(materialLotAction){
         this.materialLotAction = materialLotAction;
     }
-    static buildCreateIssueOrderByMaterial(materials,actionReason,actionComment){
+
+    static buildCreateIssueOrderByMaterial(materials, actionComment){
+        let requestBody = new IssueOrderByMaterialRequestBody(ActionType.CreateIssueOrderByMaterial, materials);
+        
         let materialLotAction = new MaterialLotAction();
-        materialLotAction.setActionReason(actionReason);
         materialLotAction.setActionComment(actionComment);
-        let requestBody=new IssueOrderByMaterialRequestBody(ActionType.CreateIssueOrderByMaterial, materials,undefined, undefined,materialLotAction);
+        requestBody.setMaterialLotAction(materialLotAction);
+
         return requestBody;
-        }
+    }
 
     static buildRecommendIssueMaterial(documentId){
 
