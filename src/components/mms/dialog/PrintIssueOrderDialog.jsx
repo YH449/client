@@ -1,6 +1,7 @@
 import  React from 'react';
 import EntityDialog from '@components/framework/dialog/EntityDialog';
 import PrintIssueOrderForm from '../form/PrintIssueOrderForm';
+import RefListManagerRequest from '@api/ref-list-manager/RefListManagerRequest';
 
 
 export default class PrintIssueOrderDialog extends EntityDialog {
@@ -23,6 +24,7 @@ export default class PrintIssueOrderDialog extends EntityDialog {
     buildForm = () => {
         return <PrintIssueOrderForm
                 document = {this.props.document}
-                object = {this.props.object}/>
+                object = {this.props.object}
+                costCenter = {this.props.costCenter}/>
     }
 }

@@ -128,6 +128,9 @@ import DocStockUpProperties from '@pages/Properties/mms/DocStockUpProperties';
 import UpdateMLotProperties from '@pages/Properties/mms/mobile/UpdateMLotProperties';
 import CheckMLotProperties from '@pages/Properties/mms/mobile/CheckMLotProperties';
 import CheckOrderProperties from '@pages/Properties/mms/mobile/CheckOrderProperties';
+import VcUploadFileProperties from '@pages/Properties/vc/VcUploadFileProperties';
+import ShipOutOrderProperties from '@pages/Properties/mms/mobile/ShipOutOrderProperties';
+import VcAddRmaInfoProperties from '@pages/Properties/vc/VcAddRmaInfoProperties';
 
 
 /**
@@ -534,7 +537,7 @@ const routerConfig = [
   {
     path: buildPath('MMS/Mobile/ShipOut'),
     layout: BlankLayout,
-    component: ShipOutMLotProperties,
+    component: ShipOutOrderProperties,
   },
   {
     path: buildPath('MMS/Mobile/WeightMLot'),
@@ -664,11 +667,6 @@ const routerConfig = [
     layout: HeaderAsideFooterResponsiveLayout,
     component: EntityProperties,
   },
-  // {
-  //   path: buildPath('MMS/LabMaterialManager'),
-  //   layout: HeaderAsideFooterResponsiveLayout,
-  //   component: EntityProperties,
-  // },
   //成品发料
   {
     path: buildPath('MMS/IssueFinishGoodOrder'),
@@ -825,6 +823,21 @@ const routerConfig = [
     path: buildPath('MMS/DocStockUpManager'),
     layout: HeaderAsideFooterResponsiveLayout,
     component: DocStockUpProperties,
+  },
+  {
+    path: buildPath('MMS/UploadFileManager'),
+    layout: HeaderAsideFooterResponsiveLayout,
+    component: VcUploadFileProperties,
+  },
+  {
+    path: buildPath('MMS/AddRmaInfo'),
+    layout: HeaderAsideFooterResponsiveLayout,
+    component: VcAddRmaInfoProperties,
+  },
+  {
+    path: buildPath('VC/VCCustomerProduct'),
+    layout: HeaderAsideFooterResponsiveLayout,
+    component: EntityProperties,
   },
 
   //Monitoring

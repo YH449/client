@@ -24,6 +24,6 @@ export default class PrintReturnOrderDialog extends EntityDialog {
         return <PrintReturnOrderForm
                 documentId = {this.props.documentId}
                 object = {this.props.object}
-                document = {this.props.document}/>
+                orderName = {this.props.orderName}/>
     }
 }

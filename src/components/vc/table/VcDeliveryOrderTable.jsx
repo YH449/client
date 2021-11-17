@@ -1,4 +1,5 @@
 import CsvImportRequest from "@api/csv-manager/CsvImportRequest";
+import SyncIncomingOrReturnMLotRequest from "@api/sync/incoming-return-mlot/SyncIncomingOrReturnMLotRequest";
 import VcDeliveryOrderRequest from "@api/vc/delivery-order-manager/VcDeliveryOrderRequest";
 import EntityDialog from "@components/framework/dialog/EntityDialog";
 import EntityListTable from "@components/framework/table/EntityListTable";
@@ -9,6 +10,7 @@ import IconUtils from "@utils/IconUtils";
 import NoticeUtils from "@utils/NoticeUtils";
 import { Upload, Button } from "antd";
 import DeliveryOrderPrintDialog from "../dialog/DeliveryOrderPrintDialog";
+import { SyncActionType } from '@api/sync/incoming-return-mlot/SyncIncomingOrReturnMLotRequestBody';
 
 const importTypeNbTable = "VcDeliveryOrderPrint"
 
@@ -23,9 +25,30 @@ export default class VcDeliveryOrderTable extends EntityListTable {
 
     createButtonGroup = () => {
         let buttons = [];
+        buttons.push(this.createSyncButton());
         buttons.push(this.createImportButton());
         buttons.push(this.createSaveButton());
         return buttons;
+    }
+
+    createSyncButton = () => {
+        return (<Button key="Sync" type="primary" className="table-button" loading={this.state.loading} onClick={() => this.handleSync()} icon="import-o">
+                {I18NUtils.getClientMessage(i18NCode.BtnSync)}
+            </Button>)
+    }
+
+    handleSync = () =>{
+        let self = this;
+        let object = {
+            actionType: SyncActionType.SyncMainMLotIncomingOrReturn,
+            success:function () {
+                self.setState({
+                    loading: false,
+                }); 
+                NoticeUtils.showSuccess();
+            }
+        }
+        SyncIncomingOrReturnMLotRequest.sendSyncIncomingOrReturnRequest(object);
     }
 
     createImportButton = () => {
@@ -93,8 +116,20 @@ export default class VcDeliveryOrderTable extends EntityListTable {
         let operations = [];
         operations.push(this.buildEditButton(record));
         operations.push(this.buildPrintButton(record));
+        operations.push(this.buildDeletePopConfirm(record));
         return operations;
     }
+
+    handleDelete = (record) => {
+        let self = this;
+        let requestObject = {
+            deliveryLineId: record.lineId,
+            success: function(responseBody) {
+                self.refresh(responseBody.documentLine);
+            }
+        }
+        VcDeliveryOrderRequest.sendDeleteRequest(requestObject);
+    } 
 
     buildEditButton = (record) => {
         return <Button key="edit" style={{marginRight:'1px'}} icon="edit" size="small" 
